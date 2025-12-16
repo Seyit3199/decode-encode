@@ -1,0 +1,11 @@
+SIFRELEME_SISTEMI_OZEK
+
+Amac: Harf/Sayıları değişken uzunlukta ve karmaşık karakterli kodlara dönüştürmek (Gizleme).
+
+Anahtar_1: HARF_TO_KOD (Büyük/Küçük harf hassasiyeti için B ve k ön ekleri kullanılır).
+Anahtar_2: SAYI_TO_KOD (Tüm rakamlar için X ön eki kullanılır).
+
+Zorunluluk: Kodların uzunluğu (3 karakterden 11 karaktere kadar) değişken olduğu için, çözme sırasında kodların nerede bittiğini belirlemek amacıyla her kod arasına & (ampersand) ayırıcısı KONULMALIDIR.
+
+Encode: Karakter -> Ön Ek + Kod + &
+Decode: & Ayırıcısına Göre Parçala -> Ön Eke Göre Sözlükte Ara -> Orijinal Karakteri Bul.

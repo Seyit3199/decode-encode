@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decode - Encode</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e; 
+            color: #f0f0f0; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #252526; 
+            padding: 35px;
+            border-radius: 12px; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 650px;
+            border: 1px solid #333; 
+        }
+        h1 {
+            color: #b2f1f8; 
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 120px;
+            font-size: 16px;
+            background: #333; 
+            color: #f0f0f0;
+            transition: border-color 0.3s;
+        }
+        textarea:focus {
+            border-color: #4a90e2; 
+            outline: none;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px; 
+            margin-bottom: 25px;
+        }
+        button {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            flex-grow: 1;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        #encodeBtn {
+            background-color: #4a90e2; 
+            color: white;
+        }
+        #encodeBtn:hover {
+            background-color: #63a4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+        }
+        #decodeBtn {
+            background-color: #50e3c2; 
+            color: #1e1e1e;
+        }
+        #decodeBtn:hover {
+            background-color: #72f7d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(80, 227, 194, 0.4);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .info-box {
+            background-color: #332d29; 
+            border: 1px solid #ff9900; 
+            color: #ffebcc;
+            padding: 18px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 25px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Decode - Encode</h1>
+
+    <label for="inputText">Girdi Metni (Harf ve Sayı Karışık):</label>
+    <textarea id="inputText" placeholder="Örn: Stok 15 Adet"></textarea>
+
+    <div class="actions">
+        <button id="encodeBtn">Şifrele (Encode)</button>
+        <button id="decodeBtn">Çöz (Decode)</button>
+    </div>
+
+    <label for="outputText">Sonuç Metni:</label>
+    <textarea id="outputText" placeholder="Şifreli metin artık ayırıcı (&) ile görünecektir." readonly></textarea>
+
+    <div class="info-box">
+        **DİKKAT:** Sizin uzun ve değişken kodlarınızı çözebilmek için araya **&** (ampersand) ayırıcısı konulmak ZORUNDADIR. Ayırıcı olmadan çözme, kod uzunluklarınız yüzünden imkansızdır.
+    </div>
+</div>
+
+<script>
+    const HARF_TO_KOD_PREFIX = 'B';
+    const KUCUK_HARF_PREFIX = 'k';
+
+    const HARF_TO_KOD = {
+        'A': '1z', 'B': '2y', 'C': '3v', 'Ç': '4ü', 'D': '5u', 'E': '6t', 
+        'F': '7ş', 'G': '8s', 'Ğ': '9r', 'H': '10p', 'I': '11ö', 'İ': '12o', 
+        'J': '13n', 'K': '14m', 'L': '15l', 'M': '16k', 'N': '17j', 'O': '18i', 
+        'Ö': '19ı', 'P': '20h', 'R': '21ğ', 'S': '22g', 'Ş': '23f', 'T': '24e', 
+        'U': '25d', 'Ü': '26ç', 'V': '27c', 'Y': '28b', 'Z': '29a',
+        ' ': 'As1S24f6F78K'
+    };
+
+    const SAYI_TO_KOD_PREFIX = 'X'; 
+    const SAYI_TO_KOD = {
+        '0': 'a9', '1': '0a8', '2': '0b07', '3': '0ba06', '4': '00ba05', 
+        '5': '000ba04', '6': '0000ab03', '7': '0a000ab02', '8': '000a00ba01', 
+        '9': 'a000000ba00'
+    };
+
+    const KOD_TO_HARF = {};
+    for (const harf in HARF_TO_KOD) {
+        KOD_TO_HARF[HARF_TO_KOD_PREFIX + HARF_TO_KOD[harf]] = harf; 
+        KOD_TO_HARF[KUCUK_HARF_PREFIX + HARF_TO_KOD[harf]] = harf.toLowerCase(); 
+    }
+
+    const KOD_TO_SAYI = {};
+    for (const sayi in SAYI_TO_KOD) {
+        KOD_TO_SAYI[SAYI_TO_KOD_PREFIX + SAYI_TO_KOD[sayi]] = sayi; 
+    }
+
+    const AYIRICI = '&'; 
+    const KOD_UZUNLUGU = 0;
+
+    function sifrele(metin) {
+        let kodlanmisDizilim = [];
+        
+        for (let i = 0; i < metin.length; i++) {
+            const karakter = metin[i];
+            const buyukKarakter = karakter.toUpperCase();
+            
+            let kod = null;
+            
+            if (SAYI_TO_KOD[karakter]) {
+                kod = SAYI_TO_KOD_PREFIX + SAYI_TO_KOD[karakter]; 
+            }
+            else if (HARF_TO_KOD[buyukKarakter]) {
+                const prefix = (karakter !== buyukKarakter) ? KUCUK_HARF_PREFIX : HARF_TO_KOD_PREFIX;
+                kod = prefix + HARF_TO_KOD[buyukKarakter]; 
+            }
+            else {
+                kodlanmisDizilim.push(karakter);
+                continue; 
+            }
+
+            kodlanmisDizilim.push(kod);
+        }
+
+        return kodlanmisDizilim.join(AYIRICI);
+    }
+
+    function cozumle(sifreliMetin) {
+        let cozulenMetin = "";
+        
+        const kodlar = sifreliMetin.split(AYIRICI);
+
+        for (const kod of kodlar) {
+            if (!kod) continue; 
+            
+            let orijinalKarakter = null;
+
+            if (KOD_TO_SAYI[kod]) { 
+                orijinalKarakter = KOD_TO_SAYI[kod]; 
+            }
+            else if (KOD_TO_HARF[kod]) { 
+                orijinalKarakter = KOD_TO_HARF[kod];
+            }
+            else {
+                orijinalKarakter = kod; 
+            }
+
+            cozulenMetin += orijinalKarakter;
+        }
+
+        return cozulenMetin;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputTextarea = document.getElementById('inputText');
+        const outputTextarea = document.getElementById('outputText');
+        const encodeButton = document.getElementById('encodeBtn');
+        const decodeButton = document.getElementById('decodeBtn');
+
+        encodeButton.addEventListener('click', () => {
+            const metin = inputTextarea.value;
+            const sifrelenmis = sifrele(metin);
+            outputTextarea.value = sifrelenmis;
+        });
+
+        decodeButton.addEventListener('click', () => {
+            const metin = inputTextarea.value;
+            const cozulen = cozumle(metin);
+            outputTextarea.value = cozulen;
+        });
+    });
+</script>
+
+</body>
+</html>
